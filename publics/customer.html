@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+    <title>Vue2610-TailwindCss-AXIOS CDN JS </title>
+    <link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>
+    <script src='https://code.jquery.com/jquery-3.3.1.slim.min.js' integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo' crossorigin='anonymous'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js' integrity='sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1' crossorigin='anonymous'></script>
+    <script src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js' integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM' crossorigin='anonymous'></script>
+    <link href='https://unpkg.com/tailwindcss@^2.0/dist/tailwind.min.css' rel='stylesheet'>
+</head>
+<body>
+<div id='app' class="w-full mx-4 my-4">
+    <div class="flex"><h1 class="mb-4 mr-2">Customers:</h1> 
+    <button 
+        @click="add"
+        class="btn btn-primary btn-sm">Add</button></div>
+    <table v-if="page=='list'" class="table w-full">
+        <thead>
+            <tr>
+                <td>No</td>
+                <td>ID</td>
+                <td>Name</td>
+                <td>Address</td>
+                <td>Province</td>
+                <td>ZipCode</td>
+                <td>Action</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(cus,idx) in customers">
+                <td>{{idx+1}}</td>
+                <td>{{cus.id}}</td>
+                <td>{{cus.name}}</td>
+                <td>{{cus.addresss}}</td>
+                <td>{{cus.province}}</td>
+                <td>{{cus.zipcode}}</td>
+                <td>
+                    <button class="btn btn-sm btn-success" @click="edit(cus)">Edit</button>
+                    <button class="btn btn-sm btn-danger"  @click="del(cus)">Del</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div v-if="page=='add'" class="flex flex-col">
+        <div><label class="w-56">Name     <input v-model="customer.name" class="border border-black w-56" type="text"  /></label></div>
+        <div><label class="w-56">Address  <input v-model="customer.addresss" class="border border-black w-56" type="text"  /></label></div>
+        <div><label class="w-56">Province <input v-model="customer.province" class="border border-black w-56" type="text"  /></label></div>
+        <div><label class="w-56">ZipCode  <input v-model="customer.zipcode" class="border border-black w-56" type="text"  /></label></div>
+        <div>
+            <button class="btn btn-sm btn-primary mr-2" @click="saveadd">Save</button>
+            <button class="btn btn-sm btn-primary" @click="back">Back</button>
+        </div>
+    </div>
+    <div v-if="page=='edit'">
+        <div><label class="w-56">ID       <input readonly v-model="customer.id" class="border border-black w-56" type="text"  /></label></div>
+        <div><label class="w-56">Name     <input v-model="customer.name" class="border border-black w-56" type="text"  /></label></div>
+        <div><label class="w-56">Address  <input v-model="customer.addresss" class="border border-black w-56" type="text"  /></label></div>
+        <div><label class="w-56">Province <input v-model="customer.province" class="border border-black w-56" type="text"  /></label></div>
+        <div><label class="w-56">ZipCode  <input v-model="customer.zipcode" class="border border-black w-56" type="text"  /></label></div>
+        <div>
+            <button class="btn btn-sm btn-primary mr-2" @click="saveupdate">Save</button>
+            <button class="btn btn-sm btn-primary" @click="back">Back</button>
+        </div>
+    </div>
+</div>	
+<script src='https://unpkg.com/axios/dist/axios.min.js'></script>
+<script type='module'>
+    import Vue from 'https://unpkg.com/vue@2.6.10/dist/vue.esm.browser.min.js';
+    window.vm = new Vue({
+    mixins:[],
+    data(){ 
+        return {
+            page:'list',
+            customers:[],
+            customer:{
+               name: '',
+               addresss: '',
+               province: '',
+               zipcode : '',
+            }
+    }},
+    el:'#app',
+    methods:{
+        validate(){
+            let chk = true;
+            Object.keys(this.customer).map(key=>{
+                if(this.customer[key]=='' ) {
+                    chk = false;
+                }
+            })
+            if(!chk) alert('กรอก ข้อมูล ไม่ครบ');
+            return chk;
+        },
+        back(){
+           this.newcus();
+           this.page = 'list'; 
+        },
+        newcus(){
+            this.customer = {
+               name: '',
+               addresss: '',
+               province: '',
+               zipcode : '',
+            };
+        },
+        add(){
+            this.page = 'add';
+        },
+        edit(item){
+            this.page = 'edit';
+            this.customer = JSON.parse(JSON.stringify(item));
+        },
+        del(item){
+           if(confirm('Are you sure want to detete ? ')){
+               axios.get('/api/customer/del/'+item.id,{
+               }).then((rs) => {
+                   console.log(rs);
+                   if(rs.data.success){
+                       alert('Delete Success')
+                       this.customers = rs.data.datas;
+                   }
+               }).catch((err) => {
+                   if(err.response) { 
+                       console.log('data----->',err.response.data); 
+                       console.log('status--->',err.response.status); 
+                       console.log('header--->',err.response.headers); 
+                   } else if(err.request) { 
+                       console.log('err request--->',err.request); 
+                   } else { 
+                       console.log('err msg--->', err.message); 
+                       console.log('err---->',err); 
+                   } 
+               });
+           } 
+        },
+        saveupdate(){
+            if(this.validate()){
+                this.updatecustomer(this.customer);
+            }
+        },
+        saveadd(){
+            if(this.validate()){
+                this.savecustomer(this.customer);
+            }
+        },
+        updatecustomer(cus){
+          axios.post("api/customer/update",this.customer)
+          .then((rs) => {
+              console.log(rs);
+              if(rs.data.success){
+                  alert('update สำเร็จ')
+                  this.page = 'list';
+                  this.customers  = rs.data.datas;
+                  this.newcus();
+              }
+          })
+          .catch( (err) => {
+              if(err.response) { 
+                  console.log('data----->',err.response.data); 
+                  console.log('status--->',err.response.status); 
+                  console.log('header--->',err.response.headers); 
+              } else if(err.request) { 
+                  console.log('err request--->',err.request); 
+              } else { 
+                  console.log('err msg--->', err.message); 
+                  console.log('err---->',err); 
+              } 
+              if(err.response.status == 401 ) this.$router.push('/login'); 
+              
+          });
+            
+        },
+        savecustomer(cus){
+          axios.post("api/customer/add",this.customer)
+          .then((rs) => {
+              console.log(rs);
+              if(rs.data.success){
+                  this.customers = rs.data.datas;
+                  this.page = 'list';
+                  alert('success');
+                  this.newcus();
+              }
+          })
+          .catch( (err) => {
+              if(err.response) { 
+                  console.log('data----->',err.response.data); 
+                  console.log('status--->',err.response.status); 
+                  console.log('header--->',err.response.headers); 
+              } else if(err.request) { 
+                  console.log('err request--->',err.request); 
+              } else { 
+                  console.log('err msg--->', err.message); 
+                  console.log('err---->',err); 
+              } 
+          });
+        },
+        getcustomer(){
+            axios.get('/api/customers',{
+            }).then((rs) => {
+                console.log(rs);
+                if(rs.data.success){
+                    this.customers = rs.data.datas;
+                } else {}
+            }).catch((err) => {
+                if(err.response) { 
+                    console.log('data----->',err.response.data); 
+                    console.log('status--->',err.response.status); 
+                    console.log('header--->',err.response.headers); 
+                } else if(err.request) { 
+                    console.log('err request--->',err.request); 
+                } else { 
+                    console.log('err msg--->', err.message); 
+                    console.log('err---->',err); 
+                } 
+            });
+        }
+    },
+    computed:{},
+    watch: {},
+    components:{},
+    beforeCreate  () { /* console.log('beforeCreate'); */ },
+    created       () { /* console.log('created'); */
+        this.getcustomer();
+     },
+    beforeMount   () { /* console.log('beforeMount'); */ },
+    mounted       () { /* console.log('mounted'); */    },
+    beforeUpdate  () { /* console.log('beforeUpdate'); */ },
+    updated       () { /* console.log('updated'); */ },
+    beforeDestroy () { /* console.log('beforeDestroy'); */ },
+    destroyed     () { /* console.log('destroyed'); */ },
+    })	
+</script>
+</body>
+</html>

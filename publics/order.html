@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+    <title>Vue2610-TailwindCss-AXIOS CDN JS </title>
+    <link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css'
+        integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>
+    <script src='https://code.jquery.com/jquery-3.3.1.slim.min.js'
+        integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo' crossorigin='anonymous'>
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js'
+        integrity='sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1' crossorigin='anonymous'>
+    </script>
+    <script src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js'
+        integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM' crossorigin='anonymous'>
+    </script>
+    <link href='https://unpkg.com/tailwindcss@^2.0/dist/tailwind.min.css' rel='stylesheet'>
+</head>
+
+<body>
+    <div id='app' class="w-full mx-4 my-4">
+        <div class="flex">
+            <h1 class="mb-4 mr-2">ORDER:</h1>
+            <button @click="add" class="btn btn-primary btn-sm">Add
+            </button>
+        </div>
+        <table v-if="page=='list'" class="table w-full">
+            <thead>
+                <tr>
+                    <td>No</td>
+                    <td>ID</td>
+                    <td>order_no</td>
+                    <td>order_date</td>
+                    <td>customer_id</td>
+                    <td>vat</td>
+                    <td>admount</td>
+                    <td>Action</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(order,idx) in orders">
+                    <td>{{idx+1}}</td>
+                    <td>{{order.order_no}}</td>
+                    <td>{{order.order_date}}</td>
+                    <td>{{order.customer_id}}</td>
+                    <td>{{order.vat}}</td>
+                    <td>{{order.admount}}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success" @click="view(order)">view</button>
+                        <button class="btn btn-sm btn-success" @click="edit(order)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @click="del(order)">Del</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div v-if="page=='add'" class="flex flex-col">
+            <div class="header flex">
+                <div class="mr-2">
+                    <label class="w-56">Customer
+                        <select v-model="order.customer_id" class="border border-black w-56" @change="changecus"
+                            type="text">
+                            <option value="">-----select customer----</option>
+                            <option v-for="(cus,idx) in customers" :value="cus.id">{{cus.name}}</option>
+                        </select>
+                        <span>name: {{customer.name}}</span><br />
+                        <span>addresss: {{customer.addresss}}</span><br />
+                        <span>province: {{customer.province}}</span><br />
+                        <span>zipcode: {{customer.zipcode}}</span><br />
+                    </label>
+                </div>
+                <div class="mr-2"><label class="w-56">Order Date <input v-model="order.order_date"
+                            class="border border-black w-56" type="date" /></label></div>
+                <div class="mr-2"><label class="w-56">Orde No<input v-model="order.order_no"
+                            class="border border-black w-56" type="text" /></label></div>
+            </div>
+            <hr />
+            <div class="body">
+                <table class="table ">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>product No</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Unit</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(de,idy) in order.details">
+                            <td>{{idy+1}}</td>
+                            <td>
+                                <select class="border w-full" v-model="de.product">
+                                    <option value="">---select product--</option>
+                                    <option v-for="(prod,idx) in products" :key="idx" :value="prod">{{prod.id}} -
+                                        {{prod.name}}</option>
+                                </select>
+                            </td>
+                            <td>{{de.product.price}}</td>
+                            <td><input type="number" min="0" v-model="de.qty" /></td>
+                            <td>{{de.product.unit}}</td>
+                            <td>{{ isNaN(de.product.price * de.qty) ? 0.00 : (de.product.price * de.qty) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5"><button class="btn btn-sm btn-success" @click="addnewitem">Add Item</button>
+                            </td>
+                            <td colspan="1">{{isNaN(sumamount) ? 0.00 : sumamount }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">&nbsp;</td>
+                            <td colspan="1">vat: <input type="number" min="0" v-model="order.vat"></td>
+                            <td colspan="2">
+                                {{ isNaN(sumamount * order.vat / 100) ? 0.00 : sumamount * order.vat / 100 }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5">&nbsp;</td>
+                            <td colspan="1">Total:
+                                {{ isNaN(( sumamount * order.vat / 100) + sumamount) ? 0.00 : (( sumamount * order.vat / 100) + sumamount) }}
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-primary mr-2" @click="saveadd">Save</button>
+                <button class="btn btn-sm btn-primary" @click="back">Back</button>
+            </div>
+        </div>
+
+        <div v-if="page=='view'" class="flex flex-col">
+            <div class="flex flex-col">
+                <table class="border border-black">
+                    <tr class="border border-black">
+                        <td>ID/ORDER NO</td>
+                        <td>{{vorder.id}} / {{vorder.order_no}}</td>
+                    </tr>
+                    <tr class="border border-black">
+                        <td>Date</td>
+                        <td>{{vorder.order_date}}</td>
+                    </tr>
+                    <tr class="border border-black">
+                        <td>Customer</td>
+                        <td>
+                            <b>id</b>{{vorder.customer.id}}<br />
+                            <b>name</b>{{vorder.customer.name}}<br />
+                            <b>addresss</b>{{vorder.customer.addresss}}<br />
+                            <b>province</b>{{vorder.customer.province}}<br />
+                            <b>zipcode</b>{{vorder.customer.zipcode}}<br />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <table class="table">
+                    <thead>
+                        <th>No</th>
+                        <th>ID</th>
+                        <th>Product Name</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>amount</th>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(de,idx) in vorder.details">
+                            <td>{{idx+1}}</td>
+                            <td>{{de.id}}</td>
+                            <td>{{de.product.name}}</td>
+                            <td>{{de.qty}}</td>
+                            <td>{{de.price}}</td>
+                            <td>{{de.amount}}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5"> &nbsp;</td>
+                            <td>{{vorder.amount}} </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4"> &nbsp;</td>
+                            <td>vat: {{vorder.vat}}</td>
+                            <td>{{vorder.amount * vorder.vat/100}}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5"> &nbsp;</td>
+                            <td>{{+vorder.amount + (vorder.amount * vorder.vat/100)}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-sm btn-primary w-40" @click="back">Back</button>
+        </div>
+
+        <div v-if="page=='edit'" class="flex flex-col">
+            <div class="flex flex-col">
+                <table class="border border-black">
+                    <tr class="border border-black">
+                        <td>ID/ORDER NO</td>
+                        <td>{{eorder.id}} / {{eorder.order_no}}</td>
+                    </tr>
+                    <tr class="border border-black">
+                        <td>Date</td>
+                        <td><input type="date" class="border" v-model="eorder.order_date" /></td>
+                    </tr>
+                    <tr class="border border-black">
+                        <td>Customer</td>
+                        <td>
+                            <select v-model="eorder.customer.id" class="border" @change="changeupdate">
+                                <option v-for="(cus,idx) in customers" :value="cus.id">{{cus.id}}/{{cus.name}}</option>
+                            </select> <br />
+                            <b>id</b>{{eorder.customer.id}}<br />
+                            <b>name</b>{{eorder.customer.name}}<br />
+                            <b>addresss</b>{{eorder.customer.addresss}}<br />
+                            <b>province</b>{{eorder.customer.province}}<br />
+                            <b>zipcode</b>{{eorder.customer.zipcode}}<br />
+                        </td>
+                    </tr>
+                </table>
+                <table class="table ">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>product No</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Unit</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(de,idy) in eorder.details" v-if="!de.isdelete">
+                            <td>{{idy+1}} {{de.isdelete}}</td>
+                            <td>
+                                <select class="border w-full" v-model="de.product" @change="chageediteorderitem(idy)">
+                                    <option value="">---select product--</option>
+                                    <option v-for="(prod,idx) in products" :key="idx" :value="prod">{{prod.id}} -
+                                        {{prod.name}}</option>
+                                </select>
+                            </td>
+                            <td>{{de.product.price}}</td>
+                            <td><input type="number" min="0" v-model="de.qty" @input="chageediteorderitem(idy)" /></td>
+                            <td>{{de.product.unit}}</td>
+                            <td>{{ isNaN(de.product.price * de.qty) ? 0.00 : (de.product.price * de.qty) }}</td>
+                            <td><button @click="deledititemline(idy)" class="btn btn-danger btn-sm">Del</button></td>
+                        </tr>
+                        <tr>
+                            <td colspan="5"><button class="btn btn-sm btn-success" @click="addnewedititem">Add
+                                    Item</button></td>
+                            <td colspan="1">{{isNaN(sumeamount) ? 0.00 : sumeamount }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">&nbsp;</td>
+                            <td colspan="1">vat: <input type="number" min="0" v-model="order.vat"></td>
+                            <td colspan="2">
+                                {{ isNaN(sumeamount * eorder.vat / 100) ? 0.00 : sumeamount * eorder.vat / 100 }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5">&nbsp;</td>
+                            <td colspan="1">Total:
+                                {{ isNaN(( sumeamount * eorder.vat / 100) + sumeamount) ? 0.00 : (( sumeamount * order.vat / 100) + sumeamount) }}
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex">
+                <button class="btn btn-sm btn-primary mr-2" @click="saveupdate">Save</button>
+                <button class="btn btn-sm btn-primary" @click="back">Back</button>
+            </div>
+        </div>
+
+
+    </div>
+    <script src='https://unpkg.com/axios/dist/axios.min.js'></script>
+    <script type='module'>
+    import Vue from 'https://unpkg.com/vue@2.6.10/dist/vue.esm.browser.min.js';
+    window.vm = new Vue({
+    mixins:[],
+    data(){ 
+        return {
+            page:'list',
+            customers:[],
+            products:[],
+            orders:[],
+            order:{
+                order_no: '',
+                order_date: '',
+                customer_id: '',
+                vat: 7,
+                admount: '',
+                details:[
+                    {
+                        id:'',
+                        product:'',
+                        order_id:'',
+                        product_id:'',
+                        qty: 0,
+                        price:0,
+                        amount: 0 ,
+                        customer_id:'',
+                    }
+                ]
+            },
+            vorder:{},
+            eorder:{},
+            customer:{},
+    }},
+    el:'#app',
+    methods:{
+        chageediteorderitem(idx){
+            console.log('----chageediteorderitem----',idx);
+            this.eorder.details[idx].isedit = true;
+        },
+        deledititemline(idx){
+            console.log('---del deteil item ---idx--',idx);
+            if(this.eorder.details[idx].isnew == true){
+
+            } else {
+                this.eorder.dels.push(this.eorder.details[idx]);
+            }
+            console.log('--->',this.eorder.dels);
+            this.eorder.details.splice(idx,1);
+        },
+        changeupdate(){
+            console.log('---test--',this.eorder);
+            this.eorder.customer = this.customers.find(cus=>cus.id==this.eorder.customer.id);
+        },
+        addnewitem(){
+            let l = this.order.details.length;
+            if(this.order.details[l-1].qty > 0){
+            this.order.details.push({
+                        id:'',
+                        product:'',
+                        order_id:'',
+                        product_id:'',
+                        qty: 0,
+                        price:0,
+                        amount: 0 ,
+                        customer_id:'',
+                    }); 
+            }
+        },
+        addnewedititem(){
+            let l = this.eorder.details.length;
+            if(this.eorder.details.length ==0 ||  this.eorder.details[l-1]?.qty > 0 ){
+            this.eorder.details.push({
+                        id:'',
+                        product:'',
+                        order_id:'',
+                        product_id:'',
+                        qty: 0,
+                        price:0,
+                        amount: 0 ,
+                        customer_id:'',
+                        isnew: true,
+                    }); 
+            }
+        },
+        changecus(e){
+            if(this.order.customer_id){
+                this.customer = this.customers.find(it=>it.id==this.order.customer_id);
+            } else {
+                this.customer = {};
+            }
+        },
+        validate(){
+            let chk = true;
+            ['order_no','order_date','customer_id'].map(key=>{
+                if(this.order[key]=='' ) {
+                    console.log('---key--->',key);
+                    chk = false;
+                }
+            })
+            this.order.details.map(dt=>{
+               if(dt.product == "" ) {
+                   chk = false;
+               }
+               if(dt.qty == 0 ) {
+                    chk = false;
+               }
+
+            })    
+            if(!chk) alert('กรอก ข้อมูล ไม่ครบ');
+            return chk;
+        },
+        validateeorder(){
+            let chk = true;
+            ['order_no','order_date','customer_id'].map(key=>{
+                if(this.eorder[key]=='' ) {
+                    console.log('---key--->',key);
+                    chk = false;
+                }
+            })
+            this.eorder.details.map(dt=>{
+               if(dt.product == "" ) {
+                   chk = false;
+               }
+               if(dt.qty == 0 ) {
+                    chk = false;
+               }
+
+            })    
+            if(!chk) alert('กรอก ข้อมูล ไม่ครบ');
+            return chk;
+        },
+        back(){
+           this.neworder();
+           this.page = 'list'; 
+        },
+        neworder(){
+
+            this.order = {
+                order_no: '',
+                order_date: '',
+                customer_id: '',
+                vat: 7,
+                admount: '',
+                details:[
+                    {
+                        id:'',
+                        product:'',
+                        order_id:'',
+                        product_id:'',
+                        qty: 0,
+                        price:0,
+                        amount: 0 ,
+                        customer_id:'',
+                    }
+                ]
+            }
+        },
+        view(item){
+            this.page = 'view';
+            this.vorder = JSON.parse(JSON.stringify(item));
+            console.log('---view--order--',item,this.vorder);
+        },
+        add(){
+            this.page = 'add';
+        },
+        edit(item){
+            this.page = 'edit';
+            this.eorder = JSON.parse(JSON.stringify(item));
+            this.eorder.dels = [];
+        },
+        del(item){
+           if(confirm('Are you sure want to detete ? ')){
+               axios.get('/api/order/del/'+item.id,{
+               }).then((rs) => {
+                   console.log(rs);
+                   if(rs.data.success){
+                       alert('Delete Success')
+                       this.orders = rs.data.datas;
+                   }
+               }).catch((err) => {
+                   if(err.response) { 
+                       console.log('data----->',err.response.data); 
+                       console.log('status--->',err.response.status); 
+                       console.log('header--->',err.response.headers); 
+                   } else if(err.request) { 
+                       console.log('err request--->',err.request); 
+                   } else { 
+                       console.log('err msg--->', err.message); 
+                       console.log('err---->',err); 
+                   } 
+               });
+           } 
+        },
+        saveupdate(){
+            if(this.validateeorder()){
+                this.updateorder(this.eorder);
+            }
+        },
+        saveadd(){
+            if(this.validate()){
+                this.saveorder(this.order);
+            }
+        },
+        updateorder(order){
+          axios.post("api/order/update",order)
+          .then((rs) => {
+              console.log(rs);
+              if(rs.data.success){
+                  alert('update สำเร็จ')
+                  this.page = 'list';
+                  this.orders  = rs.data.datas;
+              }
+          })
+          .catch( (err) => {
+              if(err.response) { 
+                  console.log('data----->',err.response.data); 
+                  console.log('status--->',err.response.status); 
+                  console.log('header--->',err.response.headers); 
+              } else if(err.request) { 
+                  console.log('err request--->',err.request); 
+              } else { 
+                  console.log('err msg--->', err.message); 
+                  console.log('err---->',err); 
+              } 
+              if(err.response.status == 401 ) this.$router.push('/login'); 
+              
+          });
+            
+        },
+        saveorder(order){
+          axios.post("api/order/add",this.order)
+          .then((rs) => {
+              console.log(rs);
+              if(rs.data.success){
+                  this.orders = rs.data.datas;
+                  this.page = 'list';
+                  alert('success');
+                  this.neworder();
+              }
+          })
+          .catch( (err) => {
+              if(err.response) { 
+                  console.log('data----->',err.response.data); 
+                  console.log('status--->',err.response.status); 
+                  console.log('header--->',err.response.headers); 
+              } else if(err.request) { 
+                  console.log('err request--->',err.request); 
+              } else { 
+                  console.log('err msg--->', err.message); 
+                  console.log('err---->',err); 
+              } 
+          });
+        },
+        getorder(){
+            axios.get('/api/order/details',{
+            }).then((rs) => {
+                console.log(rs);
+                if(rs.data.success){
+                    this.orders = rs.data.datas;
+                } else {}
+            }).catch((err) => {
+                if(err.response) { 
+                    console.log('data----->',err.response.data); 
+                    console.log('status--->',err.response.status); 
+                    console.log('header--->',err.response.headers); 
+                } else if(err.request) { 
+                    console.log('err request--->',err.request); 
+                } else { 
+                    console.log('err msg--->', err.message); 
+                    console.log('err---->',err); 
+                } 
+            });
+        },
+        getcustomer(){
+            axios.get('/api/customers',{
+            }).then((rs) => {
+                console.log(rs);
+                if(rs.data.success){
+                    this.customers = rs.data.datas;
+                } else {}
+            }).catch((err) => {
+                if(err.response) { 
+                    console.log('data----->',err.response.data); 
+                    console.log('status--->',err.response.status); 
+                    console.log('header--->',err.response.headers); 
+                } else if(err.request) { 
+                    console.log('err request--->',err.request); 
+                } else { 
+                    console.log('err msg--->', err.message); 
+                    console.log('err---->',err); 
+                } 
+            });
+        },
+        getproducts(){
+            axios.get('/api/products',{
+            }).then((rs) => {
+                console.log(rs);
+                if(rs.data.success){
+                    this.products = rs.data.datas;
+                } else {}
+            }).catch((err) => {
+                if(err.response) { 
+                    console.log('data----->',err.response.data); 
+                    console.log('status--->',err.response.status); 
+                    console.log('header--->',err.response.headers); 
+                } else if(err.request) { 
+                    console.log('err request--->',err.request); 
+                } else { 
+                    console.log('err msg--->', err.message); 
+                    console.log('err---->',err); 
+                } 
+            }); 
+        }
+    },
+    computed:{
+        sumamount(){
+            let amt = 0;
+            if(this.order && this.order.details){
+                this.order.details.map(it=>{
+                    amt += it.qty * it.product.price;
+                })
+            }
+            this.order.amount = amt;
+            return amt;
+        },
+        sumamountview(){
+            let amt = 0;
+            if(this.order && this.vorder.details){
+                this.vorder.details.map(it=>{
+                    amt += it.qty * it.product.price;
+                })
+            }
+            this.vorder.amount = amt;
+            return amt;
+        },
+        sumeamount(){
+            let amt = 0;
+            if(this.eorder && this.eorder.details){
+                this.eorder.details.map(it=>{
+                    amt += it.qty * it.product.price;
+                })
+            }
+            this.eorder.amount = amt;
+            return amt;
+        }
+    },
+    watch: {},
+    components:{},
+    beforeCreate  () { /* console.log('beforeCreate'); */ },
+    created       () { /* console.log('created'); */
+        this.getorder();
+        this.getcustomer();
+        this.getproducts();
+     },
+    beforeMount   () { /* console.log('beforeMount'); */ },
+    mounted       () { /* console.log('mounted'); */    },
+    beforeUpdate  () { /* console.log('beforeUpdate'); */ },
+    updated       () { /* console.log('updated'); */ },
+    beforeDestroy () { /* console.log('beforeDestroy'); */ },
+    destroyed     () { /* console.log('destroyed'); */ },
+    })	
+</script>
+</body>
+
+</html>

@@ -1,0 +1,18 @@
+<IfModule mod_rewrite.c>
+Options -Indexes
+RewriteEngine On
+RewriteBase /awg88.net/sak/mstdt/publics/
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.+) - [PT,L]
+
+RewriteRule ^(.*) index.php
+
+</IfModule>
+
+
+<Files ~ "\.(env|json|config.js|md|gitignore|gitattributes|lock)$">
+    Order allow,deny
+    Deny from all
+</Files>
