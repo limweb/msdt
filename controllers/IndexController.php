@@ -40,7 +40,8 @@ class IndexController   extends SecureController {
    */
    public function test(){
        try {
-           
+        //    $datas = \Account::get();
+           $datas = \mysql\User::get();
            return [
                //'ajax' => $ajax,
                //'page' => $page,
@@ -48,7 +49,7 @@ class IndexController   extends SecureController {
                //'skip' => $skip,
                //'total' => $total,
                //'count' => count($datas),
-               //'datas' => $datas,
+               'datas' => $datas,
                //'columns' => $columns,
                //'info' => $info,
                //'infos' => $info,

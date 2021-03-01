@@ -4,6 +4,7 @@
         "jacwright/restserver": "^1.2",
         "symfony/var-dumper": "^5.2",
         "illuminate/database": "^8.20",
-        "illuminate/events": "^8.20"
+        "illuminate/events": "^8.20",
+        "jenssegers/mongodb": "^3.8"
     }
 }
